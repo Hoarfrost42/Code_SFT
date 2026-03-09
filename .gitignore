@@ -1,0 +1,17 @@
+# 忽略数据集原始大规模草稿和不必要记录
+data/**/.json
+data/**/drafts/
+# 保留清洗好的特定格式 jsonl
+!data/SFT_data/exports/*.jsonl
+
+# 忽略临时数据输出模型
+output/
+
+# 忽略运行缓存和虚机环境
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
+
+# Ignore huggingface and torch temp data (if applicable on local runs)
+.cache/
