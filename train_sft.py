@@ -15,7 +15,7 @@ from trl import SFTTrainer, DataCollatorForCompletionOnlyLM
 @dataclass
 class ScriptArguments:
     model_name_or_path: str = field(
-        default="Qwen/Qwen2.5-3B-Instruct", 
+        default="Qwen/Qwen3-4B-Instruct", 
         metadata={"help": "The model that you want to train from the Hugging Face hub or local path."}
     )
     data_path: str = field(
