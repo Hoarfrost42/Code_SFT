@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import fields
+from dataclasses import MISSING, fields
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +22,22 @@ def load_json_config(config_path: str | None) -> dict[str, Any]:
 
 
 def apply_config_overrides(args_obj: Any, config: dict[str, Any]) -> Any:
-    """将配置文件中的值覆盖到 dataclass 参数对象中。"""
-    valid_names = {field.name for field in fields(args_obj)}
+    """应用配置文件，但保留命令行中显式传入的值。"""
+    field_map = {field.name: field for field in fields(args_obj)}
     for key, value in config.items():
-        if key in valid_names:
+        field_info = field_map.get(key)
+        if field_info is None:
+            continue
+
+        if field_info.default is not MISSING:
+            default_value = field_info.default
+        elif field_info.default_factory is not MISSING:
+            default_value = field_info.default_factory()
+        else:
+            default_value = getattr(args_obj, key)
+
+        current_value = getattr(args_obj, key)
+        if current_value == default_value:
             setattr(args_obj, key, value)
     return args_obj
 
