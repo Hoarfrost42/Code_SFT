@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from datasets import DatasetDict, load_dataset
 from peft import LoraConfig, prepare_model_for_kbit_training
@@ -26,6 +27,10 @@ class ScriptArguments:
     model_name_or_path: str = field(
         default="./output/qwen3_sft_lora",
         metadata={"help": "SFT 阶段产出的模型或基础模型路径。"},
+    )
+    tokenizer_name_or_path: str = field(
+        default="Qwen/Qwen3-4B-Instruct-2507",
+        metadata={"help": "sanity check 或本地 SFT 输出不存在时使用的 tokenizer 来源。"},
     )
     data_path: str = field(
         default="data/final/processed/dpo_full_v1.jsonl",
@@ -104,6 +109,11 @@ def build_dataset(script_args: ScriptArguments, tokenizer: AutoTokenizer) -> tup
     return train_dataset, eval_dataset
 
 
+def is_existing_local_path(path_str: str) -> bool:
+    """判断是否为存在的本地路径。"""
+    return Path(path_str).exists()
+
+
 def main() -> None:
     """执行 DPO 训练。"""
     parser = HfArgumentParser(ScriptArguments)
@@ -113,8 +123,14 @@ def main() -> None:
 
     set_seed(script_args.seed)
 
+    tokenizer_source = (
+        script_args.model_name_or_path
+        if is_existing_local_path(script_args.model_name_or_path)
+        else script_args.tokenizer_name_or_path
+    )
+
     tokenizer = AutoTokenizer.from_pretrained(
-        script_args.model_name_or_path,
+        tokenizer_source,
         trust_remote_code=script_args.trust_remote_code,
     )
     ensure_tokenizer_padding(tokenizer)
@@ -131,6 +147,12 @@ def main() -> None:
     if script_args.sanity_check_only:
         print("已完成 sanity check，未加载模型。")
         return
+
+    if not is_existing_local_path(script_args.model_name_or_path):
+        raise FileNotFoundError(
+            "DPO 训练需要先完成 SFT，并确保 model_name_or_path 指向已存在的本地模型目录。"
+            f" 当前路径不存在: {script_args.model_name_or_path}"
+        )
 
     quantization_config = build_quantization_config(
         load_in_4bit=script_args.use_4bit,

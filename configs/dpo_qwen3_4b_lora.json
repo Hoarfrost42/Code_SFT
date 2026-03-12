@@ -1,5 +1,6 @@
 {
   "model_name_or_path": "./output/qwen3_sft_lora",
+  "tokenizer_name_or_path": "Qwen/Qwen3-4B-Instruct-2507",
   "data_path": "data/final/processed/dpo_full_v1.jsonl",
   "output_dir": "./output/qwen3_dpo_lora",
   "validation_split_ratio": 0.05,
