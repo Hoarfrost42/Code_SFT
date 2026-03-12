@@ -4,5 +4,5 @@ trl>=0.21.0
 peft>=0.17.0
 accelerate>=1.10.0
 bitsandbytes>=0.48.0
-torch>=2.8.0
+torch>=2.7.0
 matplotlib>=3.9.0
