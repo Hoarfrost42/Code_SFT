@@ -198,9 +198,20 @@ python evaluate.py --benchmark-path data/train_data/data_v1.json --predictions-p
 当前评估脚本会统计：
 
 - 样本覆盖率
-- 关键点命中率
+- 严格关键点命中率
+- 宽松关键点命中率
+- `error_type` 准确率
 - JSON 合法率
 - `need_more_context` 准确率
+
+如果你想导出逐样本明细，方便对比 `base / sft / dpo` 在哪些题上出现分歧，可以额外传入：
+
+```bash
+python evaluate.py \
+  --benchmark-path data/benchmark/benchmark_dev_v1.json \
+  --predictions-path output/predictions_dpo_dev.jsonl \
+  --report-path output/eval_report_dpo_dev.jsonl
+```
 
 ## baseline 对比
 
