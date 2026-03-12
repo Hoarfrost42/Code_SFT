@@ -1,6 +1,6 @@
 # Qwen3-4B 单文件 Python 诊断微调项目
 
-这个仓库对应一个范围明确的小任务：用户输入单文件 Python 代码片段，以及报错信息或“结果不对”的描述，模型输出结构化的排查结论和最小修复建议。本项目基于Qwen3:4b-instruct进行SFT与DPO训练。
+这个仓库对应一个范围明确的小任务：用户输入单文件 Python 代码片段，以及报错信息或“结果不对”的描述，模型输出结构化的排查结论和最小修复建议。本项目基于 `Qwen/Qwen3-4B-Instruct-2507` 进行 SFT 与 DPO 训练。
 
 目标是使小模型能够回答简单的代码问题，进而迭代成一个简单插件。模型的回答需要尽量满足这几件事：
 
@@ -84,6 +84,8 @@
 │  └─ train_data/
 ├─ pipeline/
 ├─ evaluate.py
+├─ plot_training_curves.py
+├─ run_benchmark_inference.py
 ├─ train_sft.py
 ├─ train_dpo.py
 ├─ validate_dataset.py

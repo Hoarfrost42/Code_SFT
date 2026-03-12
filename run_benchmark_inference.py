@@ -75,7 +75,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--trust-remote-code",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
         help="是否启用 trust_remote_code。",
     )
