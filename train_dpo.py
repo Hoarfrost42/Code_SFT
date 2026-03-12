@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from datasets import DatasetDict, load_dataset
-from peft import LoraConfig, prepare_model_for_kbit_training
+from peft import AutoPeftModelForCausalLM, LoraConfig, prepare_model_for_kbit_training
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser, set_seed
 from trl import DPOConfig, DPOTrainer
 
@@ -176,23 +176,31 @@ def main() -> None:
     else:
         model_kwargs["torch_dtype"] = resolve_torch_dtype(script_args.torch_dtype)
 
-    model = AutoModelForCausalLM.from_pretrained(
-        script_args.model_name_or_path,
-        **model_kwargs,
-    )
+    if is_existing_local_path(script_args.model_name_or_path):
+        model = AutoPeftModelForCausalLM.from_pretrained(
+            script_args.model_name_or_path,
+            is_trainable=True,
+            **model_kwargs,
+        )
+        peft_config = None
+    else:
+        model = AutoModelForCausalLM.from_pretrained(
+            script_args.model_name_or_path,
+            **model_kwargs,
+        )
+        if script_args.use_4bit:
+            model = prepare_model_for_kbit_training(model)
+        peft_config = LoraConfig(
+            r=script_args.lora_r,
+            lora_alpha=script_args.lora_alpha,
+            lora_dropout=script_args.lora_dropout,
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+
     model.config.use_cache = False
     model.gradient_checkpointing_enable()
-    if script_args.use_4bit:
-        model = prepare_model_for_kbit_training(model)
-
-    peft_config = LoraConfig(
-        r=script_args.lora_r,
-        lora_alpha=script_args.lora_alpha,
-        lora_dropout=script_args.lora_dropout,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
 
     evaluation_strategy = "steps" if eval_dataset is not None else "no"
     dpo_config_kwargs = {
@@ -235,8 +243,9 @@ def main() -> None:
         "processing_class": tokenizer,
         "train_dataset": train_dataset,
         "eval_dataset": eval_dataset,
-        "peft_config": peft_config,
     }
+    if peft_config is not None:
+        trainer_kwargs["peft_config"] = peft_config
 
     trainer_signature = inspect.signature(DPOTrainer.__init__).parameters
     if "max_length" in trainer_signature:
