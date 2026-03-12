@@ -23,6 +23,7 @@
   "bnb_4bit_quant_type": "nf4",
   "bnb_4bit_compute_dtype": "bf16",
   "report_to": "none",
+  "assistant_only_loss": false,
   "response_template": "<|im_start|>assistant\n",
   "sanity_check_only": false
 }

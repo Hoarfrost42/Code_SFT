@@ -59,6 +59,10 @@ class ScriptArguments:
     bnb_4bit_quant_type: str = field(default="nf4", metadata={"help": "4bit 量化类型。"})
     bnb_4bit_compute_dtype: str = field(default="bf16", metadata={"help": "4bit 计算精度。"})
     report_to: str = field(default="none", metadata={"help": "日志上报目标。"})
+    assistant_only_loss: bool = field(
+        default=False,
+        metadata={"help": "是否仅对 assistant token 计算 loss。Qwen 当前模板默认不建议开启。"},
+    )
     response_template: str = field(
         default="<|im_start|>assistant\n",
         metadata={"help": "assistant 回复起始模板。"},
@@ -184,7 +188,7 @@ def main() -> None:
         dataset_num_proc=script_args.dataset_num_proc,
         max_length=script_args.max_seq_length,
         packing=False,
-        assistant_only_loss=True,
+        assistant_only_loss=script_args.assistant_only_loss,
     )
 
     trainer = SFTTrainer(
