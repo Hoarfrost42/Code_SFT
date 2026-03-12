@@ -213,6 +213,17 @@ python plot_training_curves.py --output-dir output/qwen3_dpo_lora
 
 - `training_curves.png`
 
+如果你想把两次实验放在同一张图里对比，例如对比 SFT 和 DPO，或者对比两组超参数，可以直接这样用：
+
+```bash
+python plot_training_curves.py \
+  --compare-dirs output/qwen3_sft_lora output/qwen3_dpo_lora \
+  --labels SFT DPO \
+  --save-path output/training_curves_compare.png
+```
+
+对比模式会把多次实验的 `loss / eval_loss / learning_rate` 叠加到同一张图上，便于观察收敛速度和验证集变化。
+
 ## 备注
 
 这个项目最重要的不是把训练流程堆复杂，而是把任务边界守住。对于 4B 量级的小模型来说，数据风格统一、错误类型覆盖合理、偏好定义明确，通常比盲目继续加参数更重要。
