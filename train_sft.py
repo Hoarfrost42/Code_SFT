@@ -35,7 +35,7 @@ class ScriptArguments:
         metadata={"help": "基础模型或本地模型路径。"},
     )
     data_path: str = field(
-        default="data/generated/processed/sft_train_v2.jsonl",
+        default="data/final/processed/sft_full_v1.jsonl",
         metadata={"help": "SFT 数据集路径。"},
     )
     output_dir: str = field(default="./output/qwen3_sft_lora", metadata={"help": "模型输出目录。"})

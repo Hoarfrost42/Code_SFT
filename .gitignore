@@ -5,6 +5,7 @@ data/SFT_data/
 data/**/drafts/
 data/**/.json
 !data/train_data/data_v1.json
+!data/benchmark/*.json
 !data/final/raw/*.jsonl
 !data/final/processed/*.jsonl
 

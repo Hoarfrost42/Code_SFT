@@ -1,0 +1,170 @@
+[
+  {
+    "id": "test_001",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "type_error",
+    "user_input": "报错: TypeError: can only concatenate str (not 'int') to str\n代码:\nname = 'age:' + 18\nprint(name)\n要求: 请定位错误并给出最小修复。",
+    "expected_keypoints": [
+      "指出字符串和整数不能直接相加",
+      "建议将18转为字符串或用f-string",
+      "给出最小修复代码",
+      "说明风险较低"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_003",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "value_error",
+    "user_input": "报错: ValueError: invalid literal for int() with base 10: '12.5'\n代码:\nprice = '12.5'\ncount = int(price)\nprint(count)",
+    "expected_keypoints": [
+      "指出 '12.5' 不是合法整数文本",
+      "建议使用 float() 或先转 float 再转 int",
+      "解释可能丢失小数精度"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_005",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "key_error",
+    "user_input": "报错: KeyError: 'age'\n代码:\nuser = {'name': 'Tom'}\nprint(user['age'])",
+    "expected_keypoints": [
+      "指出字典中没有 age 键",
+      "建议使用 get 或补全键",
+      "最小修复不要重写整段逻辑"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_007",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "module_not_found",
+    "user_input": "报错: ModuleNotFoundError: No module named 'pandas'\n代码:\nimport pandas as pd\nprint(pd.__version__)",
+    "expected_keypoints": [
+      "指出缺少 pandas 模块",
+      "建议安装依赖",
+      "不要臆造和代码无关的修复"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_010",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "syntax_error",
+    "user_input": "报错: SyntaxError: expected ':'\n代码:\nfor i in range(5)\n    print(i)",
+    "expected_keypoints": [
+      "指出 for 语句结尾缺少冒号",
+      "给出最小修复代码"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_013",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但结果不对。\n需求: 统计1到5的和，应该输出15。\n代码:\ntotal = 0\nfor i in range(1, 5):\n    total += i\nprint(total)",
+    "expected_keypoints": [
+      "指出 range(1, 5) 不包含 5",
+      "建议改为 range(1, 6)",
+      "能解释这是 off-by-one 错误"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_017",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但多次调用结果异常。\n代码:\ndef add_item(item, items=[]):\n    items.append(item)\n    return items\n\nprint(add_item('a'))\nprint(add_item('b'))",
+    "expected_keypoints": [
+      "指出可变默认参数会复用同一列表",
+      "建议默认值改为 None 再初始化",
+      "能解释为什么第二次调用受第一次影响"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_019",
+    "language": "python",
+    "difficulty": "hard",
+    "bug_type": "insufficient_context",
+    "user_input": "程序跑不动了，帮我修一下。",
+    "expected_keypoints": [
+      "明确说明信息不足",
+      "要求提供报错信息、代码片段、运行环境",
+      "不要编造具体 bug"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": true
+  }
+]

@@ -28,7 +28,7 @@ class ScriptArguments:
         metadata={"help": "SFT 阶段产出的模型或基础模型路径。"},
     )
     data_path: str = field(
-        default="data/generated/processed/dpo_pairs_v2.jsonl",
+        default="data/final/processed/dpo_full_v1.jsonl",
         metadata={"help": "DPO 数据集路径。"},
     )
     output_dir: str = field(default="./output/qwen3_dpo_lora", metadata={"help": "模型输出目录。"})

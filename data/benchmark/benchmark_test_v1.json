@@ -1,0 +1,251 @@
+[
+  {
+    "id": "test_002",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "type_error",
+    "user_input": "报错: TypeError: object of type 'NoneType' has no len()\n代码:\ndef get_items(flag):\n    if flag:\n        return ['a', 'b']\n\nitems = get_items(False)\nprint(len(items))",
+    "expected_keypoints": [
+      "指出 get_items(False) 返回 None",
+      "建议补默认返回值或调用前判空",
+      "修复方案应尽量小改动"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_004",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "index_error",
+    "user_input": "报错: IndexError: list index out of range\n代码:\nnums = [1, 2, 3]\nprint(nums[3])",
+    "expected_keypoints": [
+      "指出索引3越界",
+      "说明有效索引范围是0到2",
+      "建议修正索引或先检查长度"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_006",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "attribute_error",
+    "user_input": "报错: AttributeError: 'list' object has no attribute 'items'\n代码:\nusers = ['Tom', 'Jerry']\nfor k, v in users.items():\n    print(k, v)",
+    "expected_keypoints": [
+      "指出 list 没有 items 方法",
+      "说明 items 是 dict 的方法",
+      "建议用 enumerate 或改数据结构"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_008",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "import_error",
+    "user_input": "报错: ImportError: cannot import name 'datatime' from 'datetime'\n代码:\nfrom datetime import datatime\nprint(datatime.now())",
+    "expected_keypoints": [
+      "指出 datatime 拼写错误",
+      "应为 datetime",
+      "修复应尽量保持原结构"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_009",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "zero_division",
+    "user_input": "报错: ZeroDivisionError: division by zero\n代码:\na = 10\nb = 0\nprint(a / b)",
+    "expected_keypoints": [
+      "指出除数为0",
+      "建议在除法前做检查",
+      "可以给出保守处理方案"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_011",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "indentation_error",
+    "user_input": "报错: IndentationError: expected an indented block\n代码:\ndef hello():\nprint('hi')",
+    "expected_keypoints": [
+      "指出函数体没有正确缩进",
+      "修复代码只需补缩进"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_012",
+    "language": "python",
+    "difficulty": "easy",
+    "bug_type": "type_error",
+    "user_input": "报错: TypeError: add() missing 1 required positional argument: 'b'\n代码:\ndef add(a, b):\n    return a + b\n\nprint(add(3))",
+    "expected_keypoints": [
+      "指出调用时缺少参数 b",
+      "建议补参数或设默认值",
+      "不要大改函数逻辑"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_014",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但结果不对。\n需求: 计算列表总和。\n代码:\nnums = [1, 2, 3]\nfor n in nums:\n    total = 0\n    total += n\nprint(total)",
+    "expected_keypoints": [
+      "指出 total 在循环内被重复重置",
+      "建议将 total = 0 移到循环外",
+      "最小修复即可"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_015",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但功能不符合预期。\n需求: 只有年龄大于等于18才输出 adult。\n代码:\nage = 20\nif age < 18:\n    print('adult')\nelse:\n    print('child')",
+    "expected_keypoints": [
+      "指出判断条件与输出逻辑相反",
+      "建议修正条件或交换输出分支"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_016",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但结果不对。\n需求: 返回列表中的最大值。\n代码:\ndef get_max(nums):\n    max_num = nums[0]\n    for n in nums:\n        if n > max_num:\n            max_num = n\n        return max_num\n\nprint(get_max([1, 5, 3]))",
+    "expected_keypoints": [
+      "指出 return 缩进位置不对，导致循环首轮就返回",
+      "建议把 return 移到循环外"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_018",
+    "language": "python",
+    "difficulty": "medium",
+    "bug_type": "logic_error",
+    "user_input": "没有报错，但修改副本后原数据也变了。\n代码:\na = [[1, 2], [3, 4]]\nb = a.copy()\nb[0][0] = 99\nprint(a)",
+    "expected_keypoints": [
+      "指出 copy 只是浅拷贝",
+      "建议使用 deepcopy",
+      "说明嵌套对象仍共享引用"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": false
+  },
+  {
+    "id": "test_020",
+    "language": "python",
+    "difficulty": "hard",
+    "bug_type": "mismatched_context",
+    "user_input": "报错: KeyError: 'name'\n代码:\nnums = [1, 2, 3]\nprint(nums[5])\n请直接修复。",
+    "expected_keypoints": [
+      "指出报错信息和代码片段不一致",
+      "不能直接硬给唯一修复",
+      "应要求确认完整代码或真实报错"
+    ],
+    "expected_json_fields": [
+      "error_type",
+      "root_cause",
+      "fix_summary",
+      "risk_note",
+      "need_more_context",
+      "confidence"
+    ],
+    "should_refuse_or_ask_more": true
+  }
+]

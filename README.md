@@ -37,6 +37,8 @@
 - [dpo_full_v1.jsonl](/D:/LLM_Learning/SFT/data/final/processed/dpo_full_v1.jsonl)
 - [candidate_good_full_v1.jsonl](/D:/LLM_Learning/SFT/data/final/processed/candidate_good_full_v1.jsonl)
 - [full_cases_v1.jsonl](/D:/LLM_Learning/SFT/data/final/raw/full_cases_v1.jsonl)
+- [benchmark_dev_v1.json](/D:/LLM_Learning/SFT/data/benchmark/benchmark_dev_v1.json)
+- [benchmark_test_v1.json](/D:/LLM_Learning/SFT/data/benchmark/benchmark_test_v1.json)
 
 这批数据的来源可以理解为“教师模型蒸馏 + 人工筛选 + 偏好构造”：
 
@@ -96,9 +98,11 @@
 - `train_dpo.py`：LoRA DPO 训练脚本
 - `validate_dataset.py`：数据结构校验
 - `evaluate.py`：离线 benchmark 评测
+- `plot_training_curves.py`：训练过程曲线可视化
 - `configs/`：训练配置
 - `pipeline/`：训练和校验仍在使用的公共模块
 - `data/train_data/data_v1.json`：benchmark 种子集
+- `data/benchmark/`：显式划分好的 dev/test benchmark
 
 ## 训练流程
 
@@ -172,6 +176,11 @@ bash run_dpo.sh configs/dpo_qwen3_4b_lora.json
 - 信息不足样本
 - 报错和代码不匹配样本
 
+当前仓库里有两层评测数据：
+
+- [data_v1.json](/D:/LLM_Learning/SFT/data/train_data/data_v1.json)：完整 benchmark 种子集
+- [benchmark_dev_v1.json](/D:/LLM_Learning/SFT/data/benchmark/benchmark_dev_v1.json) 与 [benchmark_test_v1.json](/D:/LLM_Learning/SFT/data/benchmark/benchmark_test_v1.json)：已经拆好的开发集和测试集
+
 如果云端推理后导出一个预测文件，例如：
 
 ```json
@@ -190,6 +199,19 @@ python evaluate.py --benchmark-path data/train_data/data_v1.json --predictions-p
 - 关键点命中率
 - JSON 合法率
 - `need_more_context` 准确率
+
+## 训练过程可视化
+
+训练完成后，`Trainer` 会在输出目录中留下 `trainer_state.json`。可以直接用下面的脚本把 `loss / eval_loss / learning_rate` 画出来：
+
+```bash
+python plot_training_curves.py --output-dir output/qwen3_sft_lora
+python plot_training_curves.py --output-dir output/qwen3_dpo_lora
+```
+
+默认会在对应输出目录下生成：
+
+- `training_curves.png`
 
 ## 备注
 
