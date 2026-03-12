@@ -1,0 +1,196 @@
+# Qwen3-4B 单文件 Python 诊断微调项目
+
+这个仓库对应一个范围明确的小任务：用户输入单文件 Python 代码片段，以及报错信息或“结果不对”的描述，模型输出结构化的排查结论和最小修复建议。本项目基于Qwen3:4b-instruct进行SFT与DPO训练。
+
+目标是使小模型能够回答简单的代码问题，进而迭代成一个简单插件。模型的回答需要尽量满足这几件事：
+
+- 根因判断尽量准确
+- 修复方案尽量小改，不随意重写
+- 在信息不足时明确追问，不臆造上下文
+- 最终输出固定的 JSON 摘要字段
+
+## 任务边界
+
+当前版本只处理单文件 Python 片段，典型输入包括：
+
+- traceback + 代码
+- 没有异常，但结果和预期不一致
+- 代码片段与报错不匹配
+- 信息不足，需要先补上下文
+
+固定的 JSON 摘要字段如下：
+
+- `error_type`
+- `root_cause`
+- `fix_summary`
+- `risk_note`
+- `need_more_context`
+- `confidence`
+
+## 数据说明
+
+训练数据已经放在仓库中，可以直接使用，不需要再额外生成。
+
+主要文件：
+
+- [sft_full_v1.jsonl](/D:/LLM_Learning/SFT/data/final/processed/sft_full_v1.jsonl)
+- [dpo_full_v1.jsonl](/D:/LLM_Learning/SFT/data/final/processed/dpo_full_v1.jsonl)
+- [candidate_good_full_v1.jsonl](/D:/LLM_Learning/SFT/data/final/processed/candidate_good_full_v1.jsonl)
+- [full_cases_v1.jsonl](/D:/LLM_Learning/SFT/data/final/raw/full_cases_v1.jsonl)
+
+这批数据的来源可以理解为“教师模型蒸馏 + 人工筛选 + 偏好构造”：
+
+- 一部分是人工整理过的高质量种子样本
+- 一部分是围绕这些种子扩展出来的教师风格监督数据
+- 一部分是为了补齐错误类型分布而加入的受控多样性样本
+
+如果说得严格一点，这里更接近 `response distillation / supervision distillation`，而不是传统意义上蒸馏 logits 的那种知识蒸馏。不过在项目文档里写成“由强教师模型蒸馏而来，并经人工筛选清洗”是说得通的。
+
+当前可直接训练的数据规模：
+
+- SFT：`1824` 条
+- DPO：`1824` 条
+
+覆盖的主要错误类型包括：
+
+- `type_error`
+- `value_error`
+- `index_error`
+- `key_error`
+- `attribute_error`
+- `module_not_found`
+- `import_error`
+- `syntax_error`
+- `indentation_error`
+- `zero_division`
+- `logic_error`
+- `fstring_error`
+- `missing_context`
+- `mismatched_context`
+
+## 目录说明
+
+当前仓库只保留训练、评测和最终数据相关文件，结构尽量收紧：
+
+```text
+.
+├─ configs/
+├─ data/
+│  ├─ final/
+│  │  ├─ processed/
+│  │  └─ raw/
+│  └─ train_data/
+├─ pipeline/
+├─ evaluate.py
+├─ train_sft.py
+├─ train_dpo.py
+├─ validate_dataset.py
+├─ run_sft.sh
+├─ run_dpo.sh
+└─ README.md
+```
+
+其中：
+
+- `train_sft.py`：LoRA SFT 训练脚本
+- `train_dpo.py`：LoRA DPO 训练脚本
+- `validate_dataset.py`：数据结构校验
+- `evaluate.py`：离线 benchmark 评测
+- `configs/`：训练配置
+- `pipeline/`：训练和校验仍在使用的公共模块
+- `data/train_data/data_v1.json`：benchmark 种子集
+
+## 训练流程
+
+推荐训练顺序很直接：
+
+1. 先做 SFT，让模型学会任务格式、输出结构和基本排错风格
+2. 再做 DPO，强化“最小修复、少幻觉、信息不足先追问”这些偏好
+
+默认配置已经指向最终训练集：
+
+- [sft_qwen3_4b_lora.json](/D:/LLM_Learning/SFT/configs/sft_qwen3_4b_lora.json)
+- [dpo_qwen3_4b_lora.json](/D:/LLM_Learning/SFT/configs/dpo_qwen3_4b_lora.json)
+
+## 本地准备
+
+如果本地不训练，只需要做两件事：
+
+1. 校验数据文件结构
+2. 校验训练脚本能否正常读取数据并完成 prompt 格式化
+
+先安装依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+再执行：
+
+```bash
+python validate_dataset.py data/final/processed/sft_full_v1.jsonl
+python validate_dataset.py data/final/processed/dpo_full_v1.jsonl
+python validate_dataset.py data/train_data/data_v1.json
+```
+
+如果本地没有 GPU，可以只做 sanity check：
+
+```bash
+python train_sft.py --config_path configs/sft_qwen3_4b_lora.json --sanity_check_only true
+python train_dpo.py --config_path configs/dpo_qwen3_4b_lora.json --sanity_check_only true
+```
+
+## 云端训练
+
+云端拉取仓库后，直接按下面顺序执行即可：
+
+```bash
+pip install -r requirements.txt
+bash run_sft.sh
+bash run_dpo.sh
+```
+
+如果需要指定配置文件：
+
+```bash
+bash run_sft.sh configs/sft_qwen3_4b_lora.json
+bash run_dpo.sh configs/dpo_qwen3_4b_lora.json
+```
+
+默认是面向 `Qwen/Qwen3-4B-Instruct-2507` 的 LoRA 训练配置。如果云端显存吃紧，可以把配置里的 `use_4bit` 改为 `true`，切换到 QLoRA 路线。
+
+## benchmark 评估
+
+基准集放在：
+
+- [data_v1.json](/D:/LLM_Learning/SFT/data/train_data/data_v1.json)
+
+这份数据更适合拿来做开发期评估，而不是直接混进训练集。里面包含：
+
+- 常见运行时异常
+- 逻辑错误
+- 信息不足样本
+- 报错和代码不匹配样本
+
+如果云端推理后导出一个预测文件，例如：
+
+```json
+{"id": "test_001", "response": "...模型完整回答..."}
+```
+
+可以直接跑离线评估：
+
+```bash
+python evaluate.py --benchmark-path data/train_data/data_v1.json --predictions-path predictions.jsonl
+```
+
+当前评估脚本会统计：
+
+- 样本覆盖率
+- 关键点命中率
+- JSON 合法率
+- `need_more_context` 准确率
+
+## 备注
+
+这个项目最重要的不是把训练流程堆复杂，而是把任务边界守住。对于 4B 量级的小模型来说，数据风格统一、错误类型覆盖合理、偏好定义明确，通常比盲目继续加参数更重要。

@@ -1,8 +1,12 @@
-# 忽略数据集原始大规模草稿和不必要记录
-data/**/.json
+# 数据目录只保留最终训练集和 benchmark，其余中间产物不入库
+data/generated/
+data/manual_seed/
+data/SFT_data/
 data/**/drafts/
-# 保留清洗好的特定格式 jsonl
-!data/SFT_data/exports/*.jsonl
+data/**/.json
+!data/train_data/data_v1.json
+!data/final/raw/*.jsonl
+!data/final/processed/*.jsonl
 
 # 忽略临时数据输出模型
 output/
@@ -10,8 +14,13 @@ output/
 # 忽略运行缓存和虚机环境
 __pycache__/
 *.pyc
+.pytest_cache/
 .ipynb_checkpoints/
 .vscode/
+.venv/
+wandb/
+logs/
+*.log
 
 # Ignore huggingface and torch temp data (if applicable on local runs)
 .cache/
