@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -114,6 +115,12 @@ def is_existing_local_path(path_str: str) -> bool:
     return Path(path_str).exists()
 
 
+def filter_supported_kwargs(target_cls: type, kwargs: dict[str, object]) -> dict[str, object]:
+    """按目标类签名筛掉不支持的参数。"""
+    supported = inspect.signature(target_cls.__init__).parameters
+    return {key: value for key, value in kwargs.items() if key in supported}
+
+
 def main() -> None:
     """执行 DPO 训练。"""
     parser = HfArgumentParser(ScriptArguments)
@@ -188,38 +195,58 @@ def main() -> None:
     )
 
     evaluation_strategy = "steps" if eval_dataset is not None else "no"
-    training_args = DPOConfig(
-        output_dir=script_args.output_dir,
-        per_device_train_batch_size=script_args.per_device_train_batch_size,
-        per_device_eval_batch_size=script_args.per_device_eval_batch_size,
-        gradient_accumulation_steps=script_args.gradient_accumulation_steps,
-        learning_rate=script_args.learning_rate,
-        num_train_epochs=script_args.num_train_epochs,
-        logging_steps=script_args.logging_steps,
-        save_steps=script_args.save_steps,
-        eval_steps=script_args.eval_steps,
-        eval_strategy=evaluation_strategy,
-        save_strategy="steps",
-        bf16=script_args.torch_dtype.lower() == "bf16",
-        fp16=script_args.torch_dtype.lower() == "fp16",
-        max_length=script_args.max_length,
-        max_prompt_length=script_args.max_prompt_length,
-        beta=script_args.beta,
-        report_to=script_args.report_to,
-        save_total_limit=3,
-        remove_unused_columns=False,
-        load_best_model_at_end=eval_dataset is not None,
-    )
+    dpo_config_kwargs = {
+        "output_dir": script_args.output_dir,
+        "per_device_train_batch_size": script_args.per_device_train_batch_size,
+        "per_device_eval_batch_size": script_args.per_device_eval_batch_size,
+        "gradient_accumulation_steps": script_args.gradient_accumulation_steps,
+        "learning_rate": script_args.learning_rate,
+        "num_train_epochs": script_args.num_train_epochs,
+        "logging_steps": script_args.logging_steps,
+        "save_steps": script_args.save_steps,
+        "eval_steps": script_args.eval_steps,
+        "save_strategy": "steps",
+        "bf16": script_args.torch_dtype.lower() == "bf16",
+        "fp16": script_args.torch_dtype.lower() == "fp16",
+        "beta": script_args.beta,
+        "report_to": script_args.report_to,
+        "save_total_limit": 3,
+        "remove_unused_columns": False,
+        "load_best_model_at_end": eval_dataset is not None,
+    }
 
-    trainer = DPOTrainer(
-        model=model,
-        ref_model=None,
-        args=training_args,
-        processing_class=tokenizer,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        peft_config=peft_config,
-    )
+    dpo_config_signature = inspect.signature(DPOConfig.__init__).parameters
+    if "eval_strategy" in dpo_config_signature:
+        dpo_config_kwargs["eval_strategy"] = evaluation_strategy
+    elif "evaluation_strategy" in dpo_config_signature:
+        dpo_config_kwargs["evaluation_strategy"] = evaluation_strategy
+
+    if "max_length" in dpo_config_signature:
+        dpo_config_kwargs["max_length"] = script_args.max_length
+    if "max_prompt_length" in dpo_config_signature:
+        dpo_config_kwargs["max_prompt_length"] = script_args.max_prompt_length
+
+    training_args = DPOConfig(**filter_supported_kwargs(DPOConfig, dpo_config_kwargs))
+
+    trainer_kwargs = {
+        "model": model,
+        "ref_model": None,
+        "args": training_args,
+        "processing_class": tokenizer,
+        "train_dataset": train_dataset,
+        "eval_dataset": eval_dataset,
+        "peft_config": peft_config,
+    }
+
+    trainer_signature = inspect.signature(DPOTrainer.__init__).parameters
+    if "max_length" in trainer_signature:
+        trainer_kwargs["max_length"] = script_args.max_length
+    if "max_prompt_length" in trainer_signature:
+        trainer_kwargs["max_prompt_length"] = script_args.max_prompt_length
+    if "beta" in trainer_signature:
+        trainer_kwargs["beta"] = script_args.beta
+
+    trainer = DPOTrainer(**filter_supported_kwargs(DPOTrainer, trainer_kwargs))
 
     trainer.train(resume_from_checkpoint=script_args.resume_from_checkpoint)
     trainer.model.save_pretrained(script_args.output_dir)
