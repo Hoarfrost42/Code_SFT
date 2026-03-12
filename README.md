@@ -200,6 +200,47 @@ python evaluate.py --benchmark-path data/train_data/data_v1.json --predictions-p
 - JSON 合法率
 - `need_more_context` 准确率
 
+## baseline 对比
+
+为了判断微调是否真的带来了收益，建议至少比较三组结果：
+
+1. `base`：原始 `Qwen/Qwen3-4B-Instruct-2507`
+2. `sft`：SFT 产物
+3. `dpo`：DPO 产物
+
+推理脚本在：
+
+- [run_benchmark_inference.py](/D:/LLM_Learning/SFT/run_benchmark_inference.py)
+
+示例用法：
+
+```bash
+python run_benchmark_inference.py \
+  --mode base \
+  --benchmark-path data/benchmark/benchmark_dev_v1.json \
+  --predictions-path output/predictions_base_dev.jsonl
+
+python run_benchmark_inference.py \
+  --mode sft \
+  --benchmark-path data/benchmark/benchmark_dev_v1.json \
+  --predictions-path output/predictions_sft_dev.jsonl
+
+python run_benchmark_inference.py \
+  --mode dpo \
+  --benchmark-path data/benchmark/benchmark_dev_v1.json \
+  --predictions-path output/predictions_dpo_dev.jsonl
+```
+
+然后分别评估：
+
+```bash
+python evaluate.py --benchmark-path data/benchmark/benchmark_dev_v1.json --predictions-path output/predictions_base_dev.jsonl
+python evaluate.py --benchmark-path data/benchmark/benchmark_dev_v1.json --predictions-path output/predictions_sft_dev.jsonl
+python evaluate.py --benchmark-path data/benchmark/benchmark_dev_v1.json --predictions-path output/predictions_dpo_dev.jsonl
+```
+
+如果你只想做最终结果对比，可以把 `benchmark_dev_v1.json` 换成 `benchmark_test_v1.json`。
+
 ## 训练过程可视化
 
 训练完成后，`Trainer` 会在输出目录中留下 `trainer_state.json`。可以直接用下面的脚本把 `loss / eval_loss / learning_rate` 画出来：
