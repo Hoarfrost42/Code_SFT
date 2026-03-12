@@ -11,10 +11,9 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     HfArgumentParser,
-    TrainingArguments,
     set_seed,
 )
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import SFTConfig, SFTTrainer
 
 from pipeline.training_utils import (
     apply_config_overrides,
@@ -93,21 +92,6 @@ def build_dataset(script_args: ScriptArguments, tokenizer: AutoTokenizer) -> tup
         train_dataset = dataset
         eval_dataset = None
 
-    map_kwargs = {
-        "num_proc": script_args.dataset_num_proc,
-        "remove_columns": train_dataset.column_names,
-        "desc": "Applying chat template",
-    }
-    train_dataset = train_dataset.map(lambda item: apply_chat_template(item, tokenizer), **map_kwargs)
-
-    if eval_dataset is not None:
-        eval_dataset = eval_dataset.map(
-            lambda item: apply_chat_template(item, tokenizer),
-            num_proc=script_args.dataset_num_proc,
-            remove_columns=eval_dataset.column_names,
-            desc="Applying chat template (eval)",
-        )
-
     return train_dataset, eval_dataset
 
 
@@ -132,7 +116,8 @@ def main() -> None:
         print(f"验证集样本数: {len(eval_dataset)}")
     if len(train_dataset) > 0:
         print("首条格式化样本预览：")
-        print(train_dataset[0]["text"][:1000])
+        preview_text = apply_chat_template(train_dataset[0], tokenizer)["text"]
+        print(preview_text[:1000])
 
     if script_args.sanity_check_only:
         print("已完成 sanity check，未加载模型。")
@@ -171,21 +156,8 @@ def main() -> None:
         task_type="CAUSAL_LM",
     )
 
-    response_template_ids = tokenizer.encode(
-        script_args.response_template,
-        add_special_tokens=False,
-    )
-    collator = None
-    if response_template_ids:
-        collator = DataCollatorForCompletionOnlyLM(
-            response_template=response_template_ids,
-            tokenizer=tokenizer,
-        )
-    else:
-        print("警告：response_template 无法编码，将退回全量 loss。")
-
     eval_strategy = "steps" if eval_dataset is not None else "no"
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=script_args.output_dir,
         per_device_train_batch_size=script_args.per_device_train_batch_size,
         per_device_eval_batch_size=script_args.per_device_eval_batch_size,
@@ -209,6 +181,10 @@ def main() -> None:
         load_best_model_at_end=eval_dataset is not None,
         metric_for_best_model="eval_loss" if eval_dataset is not None else None,
         greater_is_better=False if eval_dataset is not None else None,
+        dataset_num_proc=script_args.dataset_num_proc,
+        max_length=script_args.max_seq_length,
+        packing=False,
+        assistant_only_loss=True,
     )
 
     trainer = SFTTrainer(
@@ -216,12 +192,8 @@ def main() -> None:
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=peft_config,
-        dataset_text_field="text",
-        max_seq_length=script_args.max_seq_length,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         args=training_args,
-        data_collator=collator,
-        packing=False,
     )
 
     trainer.train(resume_from_checkpoint=script_args.resume_from_checkpoint)
